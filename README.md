@@ -15,7 +15,8 @@ Databento (CME ES ticks) ─► engine (1000T bars, order blocks, rules, risk) �
   touches an order block from the opposite side:
   - green (bullish) OB, price coming down into it → **buy calls**
   - red (bearish) OB, price coming up into it → **buy puts**
-- Only big zones are traded: set `min_zone_volume` / `min_zone_height_points`.
+- Only big zones are traded: 5+ ES points tall by default
+  (`min_zone_height_points`; `min_zone_volume` can also filter by label volume).
 - Entry fires on the touching tick (a single tick at the zone edge counts).
 - Each OB gets one chance; touches outside trading hours don't use it up.
 - **Take profit** depends on gamma exposure, read from `gex.toml`:

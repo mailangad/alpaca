@@ -30,7 +30,7 @@ class StrategyConfig:
     touch_tolerance_points: float = 0.0  # 0.25 = trigger one ES tick before the zone edge
     # Only trade big zones. 0 = no filter.
     min_zone_volume: float = 0.0         # label volume, e.g. 10000 for "10K+"
-    min_zone_height_points: float = 0.0  # zone height in ES points
+    min_zone_height_points: float = 5.0  # zone height in ES points (only 5+ point zones)
     min_ob_strength_pct: float = 0.0     # e.g. 40 to skip zones under 40%
     stop_buffer_points: float = 1.0      # ES points beyond the far side of the OB
     max_risk_points: float = 0.0         # skip OBs taller than this (0 = no limit)

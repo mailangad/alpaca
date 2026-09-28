@@ -17,6 +17,7 @@ from helpers import bullish_bars, mirror, tick
 def make_cfg(tmp_path, gex: str | None = None) -> Config:
     cfg = Config()
     cfg.orderblocks.swing_length = 3
+    cfg.strategy.min_zone_height_points = 0  # the test zone is only 2 points tall
     cfg.risk.kill_switch_file = str(tmp_path / "KILL")
     cfg.exits.gex_file = str(tmp_path / "gex.toml")
     if gex:
@@ -79,7 +80,7 @@ def test_small_zones_are_ignored(tmp_path):
     engine.on_tick(tick(101))
     assert engine.state is State.FLAT
     cfg.strategy.min_zone_volume = 900
-    cfg.strategy.min_zone_height_points = 2.25  # this zone is 2.0 tall
+    cfg.strategy.min_zone_height_points = 5.0  # default "big" filter; this zone is 2.0 tall
     engine = make_engine(cfg)
     engine.on_tick(tick(102))
     engine.on_tick(tick(101))
@@ -89,6 +90,10 @@ def test_small_zones_are_ignored(tmp_path):
     engine.on_tick(tick(102))
     engine.on_tick(tick(101))
     assert engine.state is State.OPEN
+
+
+def test_big_zone_default_is_5_points():
+    assert Config().strategy.min_zone_height_points == 5.0
 
 
 def test_touch_tolerance_triggers_one_tick_early(tmp_path):

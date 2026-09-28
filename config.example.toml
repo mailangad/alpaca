@@ -16,7 +16,7 @@ zone_count = "Low"          # "One" / "Low" (3 per side) / "Medium" (5) / "High"
 [strategy]                  # Rule 1: first touch of a big OB from the opposite side
 touch_tolerance_points = 0.0   # 0.25 = trigger one ES tick before the zone edge
 min_zone_volume = 0            # only zones whose label volume is at least this (10000 = 10K)
-min_zone_height_points = 0.0   # only zones at least this many ES points tall
+min_zone_height_points = 5.0   # only zones at least 5 ES points tall ("big" zones)
 min_ob_strength_pct = 0.0      # skip zones whose % is below this
 stop_buffer_points = 1.0       # stop = this many ES points beyond the far side of the OB
 max_risk_points = 0.0          # skip OBs taller than this (0 = no limit)
