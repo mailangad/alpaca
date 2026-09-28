@@ -11,25 +11,32 @@ def bar(i: int, o: float, h: float, l: float, c: float, v: int = 100, t0=T0) -> 
     return Bar(i, ts, ts, o, h, l, c, v, 1000)
 
 
-# A swing high at 15 (bar 2), a pullback to 8 (bar 5), then bar 7 closes
-# above 15: break of structure -> bullish OB on bar 5 = 8.0 .. 12.0.
-BULLISH_SETUP = [
-    (9.5, 10, 9, 9.5),
-    (10, 12, 10, 11.5),
-    (11.5, 15, 11, 14),
-    (14, 14, 12, 12.5),
-    (12.5, 13, 11, 11.5),
-    (11.5, 12, 8, 9),
-    (9, 13, 9, 12.5),
-    (12.5, 16.5, 12, 16),
+FLAT = (100, 100.5, 99.5, 100)
+
+# swing_length = 3. Twelve flat bars seed ATR(10); bar 12 dips to 98 (swing
+# low, needed first); bar 16 spikes to 103 (swing high); bar 20 is the lowest
+# candle of the pullback (99-101); bar 22 closes at 103.5 above the swing
+# high -> bullish OB on bar 20: zone 99.00-101.00.
+BULLISH_SETUP = [FLAT] * 12 + [
+    (100, 100.5, 98, 99.5),     # 12 swing low
+    FLAT, FLAT, FLAT,           # 13-15
+    (100, 103, 99.5, 102.5),    # 16 swing high
+    (102.5, 102.5, 101, 101.5),  # 17
+    (101.5, 102, 100.5, 101),   # 18
+    (101, 101.5, 100.2, 100.5),  # 19
+    (100.5, 101, 99, 99.5),     # 20 the order block candle
+    (99.5, 101.5, 99.2, 101),   # 21
+    (101, 103.8, 100.8, 103.5),  # 22 break of structure
 ]
+VOLUMES = {20: 300, 21: 200, 22: 400}
+OB_BOTTOM, OB_TOP = 99.0, 101.0
 
 
 def bullish_bars(t0=T0) -> list[Bar]:
-    return [bar(i, *ohlc, v=100 * (i + 1), t0=t0) for i, ohlc in enumerate(BULLISH_SETUP)]
+    return [bar(i, *ohlc, v=VOLUMES.get(i, 100), t0=t0) for i, ohlc in enumerate(BULLISH_SETUP)]
 
 
-def mirror(bars: list[Bar], pivot: float = 20.0) -> list[Bar]:
+def mirror(bars: list[Bar], pivot: float = 200.0) -> list[Bar]:
     """Reflect prices around `pivot` to turn a bullish setup into a bearish one."""
     return [
         Bar(b.index, b.start, b.end, pivot - b.open, pivot - b.low, pivot - b.high,

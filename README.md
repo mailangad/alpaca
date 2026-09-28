@@ -9,12 +9,13 @@ Databento (CME ES ticks) ─► engine (1000T bars, order blocks, rules, risk) �
 
 ## Rules implemented
 
-**Rule 1 — first touch of an order block**
+**Rule 1 — first touch of a big order block**
 
 - During the trading window (default 09:45–15:30 ET), the first time price
   touches an order block from the opposite side:
   - green (bullish) OB, price coming down into it → **buy calls**
   - red (bearish) OB, price coming up into it → **buy puts**
+- Only big zones are traded: set `min_zone_volume` / `min_zone_height_points`.
 - Entry fires on the touching tick (a single tick at the zone edge counts).
 - Each OB gets one chance; touches outside trading hours don't use it up.
 - **Take profit** depends on gamma exposure, read from `gex.toml`:
@@ -26,8 +27,10 @@ Databento (CME ES ticks) ─► engine (1000T bars, order blocks, rules, risk) �
 - **Stop:** price trades `stop_buffer_points` beyond the far side of the OB
   (placeholder until the real stop rule is decided).
 
-Order block detection follows the Flux Charts "Volumized Order Blocks" logic
-(see `spxbot/orderblocks.py`). Check its settings against your TradingView chart.
+Order block detection is a port of the Flux Charts "Volumized Order Blocks"
+Pine script (`spxbot/orderblocks.py`): same swing detection, ATR(10) x 3.5 size
+filter, breaker handling, "Zone Count" display limit, and merging of
+overlapping zones. The bot trades the zones as they appear on the chart.
 
 ## Safety
 

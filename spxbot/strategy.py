@@ -1,17 +1,20 @@
 """Trading rules. Everything chart-reading lives here.
 
-Rule 1 — first touch of an order block:
+Rule 1 — first touch of a big order block:
   During the trading window, the FIRST time price touches an order block
-  coming from the opposite side (a single tick at the zone edge counts; see
+  zone (as drawn on the chart, merged zones included) coming from the
+  opposite side (a single tick at the zone edge counts; see
   `touch_tolerance_points` to trigger slightly before the edge):
-    * green (bullish) OB touched from above  -> buy calls
-    * red (bearish) OB touched from below    -> buy puts
+    * green (bullish) zone touched from above  -> buy calls
+    * red (bearish) zone touched from below    -> buy puts
+  Only zones passing the size filters (volume / height) are traded.
   Entry fires on the touching tick, not on bar close.
   Take profit depends on the gamma regime (see gamma.py / engine.py).
-  Stop: price trades `stop_buffer_points` beyond the far side of the OB.
+  Stop: price trades `stop_buffer_points` beyond the far side of the zone.
 
-Each OB gets one chance: once touched in the window it is marked used,
-whether or not a trade was taken (e.g. already in a position).
+Each zone gets one chance: once touched in the window, the order blocks it
+is made of are marked used, whether or not a trade was taken. A merged zone
+counts as used if any order block inside it was already touched.
 """
 
 from __future__ import annotations
@@ -22,7 +25,7 @@ from datetime import datetime
 from .config import ChartConfig, OrderBlockConfig, StrategyConfig, parse_time
 from .indicators import ET, EMA, AnchoredVWAP, FVGDetector
 from .models import Bar, Side, Signal, Tick
-from .orderblocks import OrderBlock, OrderBlockDetector
+from .orderblocks import OrderBlockDetector, Zone
 
 
 @dataclass(slots=True)
@@ -33,7 +36,7 @@ class MarketState:
     ema_fast: float | None
     ema_slow: float | None
     vwap: float | None
-    order_blocks: list[OrderBlock]
+    zones: list[Zone]
     fvgs: list
 
 
@@ -54,16 +57,24 @@ class OrderBlockStrategy:
         self.fvg = FVGDetector()
         self.obs = OrderBlockDetector(
             swing_length=obs.swing_length,
-            zone=obs.zone,
             invalidation=obs.invalidation,
-            max_active_per_side=obs.max_active_per_side,
+            zone_count=obs.zone_count,
         )
         self.state: MarketState | None = None
+        self.touched_ids: set[int] = set()
         self._prev_price: float | None = None
 
     def in_window(self, ts: datetime) -> bool:
         t = ts.astimezone(ET).time()
         return self.window[0] <= t < self.window[1]
+
+    def is_big(self, zone: Zone) -> bool:
+        r = self.rules
+        return (
+            zone.volume >= r.min_zone_volume
+            and zone.top - zone.bottom >= r.min_zone_height_points
+            and zone.strength_pct >= r.min_ob_strength_pct
+        )
 
     def on_bar(self, bar: Bar) -> None:
         fast = self.ema_fast.update(bar.close)
@@ -71,7 +82,7 @@ class OrderBlockStrategy:
         vwap = self.vwap.update(bar)
         self.fvg.update(bar)
         self.obs.update(bar)
-        self.state = MarketState(bar, fast, slow, vwap, self.obs.active, self.fvg.active)
+        self.state = MarketState(bar, fast, slow, vwap, self.obs.zones, self.fvg.active)
 
     def on_tick(self, tick: Tick) -> Signal | None:
         prev, price = self._prev_price, tick.price
@@ -82,26 +93,26 @@ class OrderBlockStrategy:
         r = self.rules
         tol = r.touch_tolerance_points
         signal: Signal | None = None
-        for ob in self.obs.active:
-            if ob.touches:
+        for zone in self.obs.active_zones:
+            if zone.member_ids & self.touched_ids:
                 continue
-            if ob.bullish:
+            if zone.bullish:
                 # Coming down from above into the zone top.
-                if not (prev > ob.top + tol >= price):
+                if not (prev > zone.top + tol >= price):
                     continue
-                side, stop = Side.LONG, ob.bottom - r.stop_buffer_points
+                side, stop = Side.LONG, zone.bottom - r.stop_buffer_points
             else:
                 # Coming up from below into the zone bottom.
-                if not (prev < ob.bottom - tol <= price):
+                if not (prev < zone.bottom - tol <= price):
                     continue
-                side, stop = Side.SHORT, ob.top + r.stop_buffer_points
+                side, stop = Side.SHORT, zone.top + r.stop_buffer_points
 
-            ob.touches += 1
+            self.touched_ids |= zone.member_ids
             if signal is not None:
-                continue  # two OBs hit on one tick: take the first, burn both
-            if ob.strength_pct < r.min_ob_strength_pct:
+                continue  # two zones hit on one tick: take the first, burn both
+            if not self.is_big(zone):
                 continue
-            if not (ob.bottom - tol <= price <= ob.top + tol):
+            if not (zone.bottom - tol <= price <= zone.top + tol):
                 continue  # gapped straight through the whole zone
             if r.max_risk_points and abs(price - stop) > r.max_risk_points:
                 continue
@@ -109,9 +120,8 @@ class OrderBlockStrategy:
                 side=side,
                 es_entry=price,
                 es_stop=stop,
-                reason=f"first touch {'green' if ob.bullish else 'red'} OB #{ob.id} "
-                f"{ob.bottom:.2f}-{ob.top:.2f} ({ob.strength_pct:.0f}%)",
+                reason=f"first touch {zone.label}" + (" [combined]" if zone.combined else ""),
                 ts=tick.ts,
-                meta={"ob_id": ob.id},
+                meta={"ob_ids": sorted(zone.member_ids)},
             )
         return signal

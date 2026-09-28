@@ -16,7 +16,7 @@ from helpers import bullish_bars, mirror, tick
 
 def make_cfg(tmp_path, gex: str | None = None) -> Config:
     cfg = Config()
-    cfg.orderblocks.swing_length = 2
+    cfg.orderblocks.swing_length = 3
     cfg.risk.kill_switch_file = str(tmp_path / "KILL")
     cfg.exits.gex_file = str(tmp_path / "gex.toml")
     if gex:
@@ -36,38 +36,58 @@ def make_engine(cfg, bars=None) -> Engine:
 
 def test_first_touch_of_green_ob_from_above_buys_calls(tmp_path):
     engine = make_engine(make_cfg(tmp_path))
-    engine.on_tick(tick(13))
-    engine.on_tick(tick(12))  # touches the OB top (12.0) from above
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))  # touches the zone top (101.0) from above
     assert engine.state is State.OPEN
     sig = engine.current.signal
-    assert sig.side is Side.LONG and sig.es_stop == 7.0  # 8.0 bottom - 1.0 buffer
+    assert sig.side is Side.LONG and sig.es_stop == 98.0  # 99.0 bottom - 1.0 buffer
     assert engine.current.order.right == "C"
 
 
 def test_second_touch_is_ignored(tmp_path):
     engine = make_engine(make_cfg(tmp_path))
-    for p in (13, 12, 6.5):  # touch, then stop out
+    for p in (102, 101, 97.5):  # touch, then stop out
         engine.on_tick(tick(p))
     assert engine.state is State.FLAT and engine.trades[0].exit_reason == "stop"
-    for p in (13, 12):
+    for p in (102, 101):
         engine.on_tick(tick(p))
     assert len(engine.trades) == 1 and engine.state is State.FLAT
 
 
 def test_touch_from_below_does_not_count(tmp_path):
     engine = make_engine(make_cfg(tmp_path))
-    engine.on_tick(tick(10))  # already inside the zone
-    engine.on_tick(tick(12))
+    engine.on_tick(tick(100))  # already inside the zone
+    engine.on_tick(tick(101))
     assert engine.state is State.FLAT
 
 
 def test_touch_outside_trading_hours_does_not_use_up_the_ob(tmp_path):
     engine = make_engine(make_cfg(tmp_path))
-    engine.on_tick(tick(13, minute=-40))   # 09:20 ET, before the window
-    engine.on_tick(tick(12, minute=-39))
+    engine.on_tick(tick(102, minute=-40))   # 09:20 ET, before the window
+    engine.on_tick(tick(101, minute=-39))
     assert engine.state is State.FLAT
-    engine.on_tick(tick(13))
-    engine.on_tick(tick(12))
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
+    assert engine.state is State.OPEN
+
+
+def test_small_zones_are_ignored(tmp_path):
+    cfg = make_cfg(tmp_path)
+    cfg.strategy.min_zone_volume = 1000  # this zone is 900
+    engine = make_engine(cfg)
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
+    assert engine.state is State.FLAT
+    cfg.strategy.min_zone_volume = 900
+    cfg.strategy.min_zone_height_points = 2.25  # this zone is 2.0 tall
+    engine = make_engine(cfg)
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
+    assert engine.state is State.FLAT
+    cfg.strategy.min_zone_height_points = 2.0
+    engine = make_engine(cfg)
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
     assert engine.state is State.OPEN
 
 
@@ -75,14 +95,14 @@ def test_touch_tolerance_triggers_one_tick_early(tmp_path):
     cfg = make_cfg(tmp_path)
     cfg.strategy.touch_tolerance_points = 0.25
     engine = make_engine(cfg)
-    engine.on_tick(tick(13))
-    engine.on_tick(tick(12.25))
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101.25))
     assert engine.state is State.OPEN
 
 
 def test_red_ob_touched_from_below_buys_puts(tmp_path):
     engine = make_engine(make_cfg(tmp_path), bars=mirror(bullish_bars()))
-    ob = engine.strategy.obs.bearish[0]
+    ob = engine.strategy.obs.active_zones[0]
     engine.on_tick(tick(ob.bottom - 1))
     engine.on_tick(tick(ob.bottom))
     assert engine.state is State.OPEN
@@ -104,17 +124,17 @@ def test_red_ob_touched_from_below_buys_puts(tmp_path):
 )
 def test_take_profit_depends_on_gamma(tmp_path, gex, regime, tp):
     engine = make_engine(make_cfg(tmp_path, gex))
-    engine.on_tick(tick(13))
-    engine.on_tick(tick(12))
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
     assert engine.current.gamma == regime
     assert engine.current.order.take_profit == pytest.approx(tp)
 
 
 def test_take_profit_fills_in_sim(tmp_path):
     engine = make_engine(make_cfg(tmp_path, 'regime = "negative"'))
-    engine.on_tick(tick(13))
-    engine.on_tick(tick(12))
-    engine.on_tick(tick(13.25))  # +1.25 pts * 0.5 delta / 10 = +0.06 on XSP
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
+    engine.on_tick(tick(102.25))  # +1.25 pts * 0.5 delta / 10 = +0.06 on XSP
     assert engine.state is State.FLAT
     t = engine.trades[0]
     assert t.exit_reason == "take-profit"
@@ -125,8 +145,8 @@ def test_spx_take_profit_is_not_scaled(tmp_path):
     cfg = make_cfg(tmp_path, 'regime = "positive"')
     cfg.options.root = "SPX"
     engine = make_engine(cfg)
-    engine.on_tick(tick(13))
-    engine.on_tick(tick(12))
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
     assert engine.current.order.take_profit == pytest.approx(2.0)
     assert engine.current.order.spec.trading_class == "SPXW"
 
@@ -145,8 +165,8 @@ def test_kill_switch_blocks_entries(tmp_path):
     cfg = make_cfg(tmp_path)
     (tmp_path / "KILL").touch()
     engine = make_engine(cfg)
-    engine.on_tick(tick(13))
-    engine.on_tick(tick(12))
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
     assert engine.state is State.FLAT
 
 
@@ -162,9 +182,9 @@ def test_daily_loss_limit_halts_trading(tmp_path):
 
 def test_end_of_day_flatten(tmp_path):
     engine = make_engine(make_cfg(tmp_path))
-    engine.on_tick(tick(13))
-    engine.on_tick(tick(12))
-    engine.on_tick(tick(12.5, minute=351))  # 15:51 ET
+    engine.on_tick(tick(102))
+    engine.on_tick(tick(101))
+    engine.on_tick(tick(101.5, minute=351))  # 15:51 ET
     assert engine.state is State.FLAT
     assert engine.trades[0].exit_reason == "end-of-day flatten"
 

@@ -8,15 +8,16 @@ ema_fast = 9
 ema_slow = 21
 vwap_anchor = "09:30"
 
-[orderblocks]               # match these to your Flux Charts indicator settings
+[orderblocks]               # same inputs as the Flux Charts indicator
 swing_length = 10
-zone = "wick"               # "wick" (full candle) or "body"
-invalidation = "wick"       # "wick" or "close"
-max_active_per_side = 5
+invalidation = "wick"       # "Zone Invalidation": "wick" or "close"
+zone_count = "Low"          # "One" / "Low" (3 per side) / "Medium" (5) / "High" (10)
 
-[strategy]                  # Rule 1: first touch of an OB from the opposite side
+[strategy]                  # Rule 1: first touch of a big OB from the opposite side
 touch_tolerance_points = 0.0   # 0.25 = trigger one ES tick before the zone edge
-min_ob_strength_pct = 0.0      # skip OBs whose % is below this
+min_zone_volume = 0            # only zones whose label volume is at least this (10000 = 10K)
+min_zone_height_points = 0.0   # only zones at least this many ES points tall
+min_ob_strength_pct = 0.0      # skip zones whose % is below this
 stop_buffer_points = 1.0       # stop = this many ES points beyond the far side of the OB
 max_risk_points = 0.0          # skip OBs taller than this (0 = no limit)
 

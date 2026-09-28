@@ -19,16 +19,19 @@ class ChartConfig:
 
 @dataclass
 class OrderBlockConfig:
+    # Same inputs as the Flux Charts indicator.
     swing_length: int = 10
-    zone: Literal["wick", "body"] = "wick"
     invalidation: Literal["wick", "close"] = "wick"
-    max_active_per_side: int = 5
+    zone_count: Literal["One", "Low", "Medium", "High"] = "Low"
 
 
 @dataclass
 class StrategyConfig:
     touch_tolerance_points: float = 0.0  # 0.25 = trigger one ES tick before the zone edge
-    min_ob_strength_pct: float = 0.0     # e.g. 40 to skip OBs under 40%
+    # Only trade big zones. 0 = no filter.
+    min_zone_volume: float = 0.0         # label volume, e.g. 10000 for "10K+"
+    min_zone_height_points: float = 0.0  # zone height in ES points
+    min_ob_strength_pct: float = 0.0     # e.g. 40 to skip zones under 40%
     stop_buffer_points: float = 1.0      # ES points beyond the far side of the OB
     max_risk_points: float = 0.0         # skip OBs taller than this (0 = no limit)
 
