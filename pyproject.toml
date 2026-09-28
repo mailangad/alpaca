@@ -1,0 +1,22 @@
+[project]
+name = "spxbot"
+version = "0.1.0"
+description = "ES tick-chart order-block engine that trades XSP/SPX 0DTE options via Interactive Brokers"
+requires-python = ">=3.11"
+dependencies = [
+    "databento>=0.60",
+    "ib_async>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+spxbot = "spxbot.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["spxbot*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".", "tests"]

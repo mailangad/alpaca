@@ -1,0 +1,5 @@
+# Copy to gex.toml. The bot re-reads it whenever it changes, so you can edit it mid-session.
+#   regime = "positive" | "negative"   fixed for the day
+#   regime = "auto" + flip_spx         SPX above the gamma flip = positive gamma
+regime = "auto"
+flip_spx = 7715.0

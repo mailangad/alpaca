@@ -1,0 +1,56 @@
+# Copy to config.toml and edit. Every key is optional; defaults shown.
+
+mode = "dry_run"            # "dry_run" = simulated fills, "ibkr" = send orders to IBKR
+
+[chart]
+ticks_per_bar = 1000        # your 1000T chart
+ema_fast = 9
+ema_slow = 21
+vwap_anchor = "09:30"
+
+[orderblocks]               # match these to your Flux Charts indicator settings
+swing_length = 10
+zone = "wick"               # "wick" (full candle) or "body"
+invalidation = "wick"       # "wick" or "close"
+max_active_per_side = 5
+
+[strategy]                  # Rule 1: first touch of an OB from the opposite side
+touch_tolerance_points = 0.0   # 0.25 = trigger one ES tick before the zone edge
+min_ob_strength_pct = 0.0      # skip OBs whose % is below this
+stop_buffer_points = 1.0       # stop = this many ES points beyond the far side of the OB
+max_risk_points = 0.0          # skip OBs taller than this (0 = no limit)
+
+[exits]                     # take profit in SPX option dollars (auto-scaled /10 for XSP)
+take_profit_negative_gamma = 0.50
+take_profit_positive_gamma = 2.00
+gex_file = "gex.toml"
+
+[options]
+root = "XSP"                # "XSP" now, "SPX" later
+strike_offset = 0           # 0 = ATM, 1 = one strike OTM
+contracts = 1
+fallback_basis_points = 35.0   # ES - SPX gap used only when there is no live SPX price
+
+[risk]                      # times are US/Eastern
+trade_start = "09:45"
+trade_end = "15:30"
+flatten_at = "15:50"
+max_trades_per_day = 5
+max_daily_loss_usd = 300.0
+max_contracts = 2
+kill_switch_file = "KILL"   # create this file to flatten and stop trading
+
+[databento]
+dataset = "GLBX.MDP3"
+symbol = "ESZ6"             # front-month ES; roll before expiry
+stype_in = "raw_symbol"
+
+[ibkr]
+host = "127.0.0.1"
+port = 4002                 # IB Gateway: 4002 paper, 4001 live
+client_id = 17
+allow_live = false          # must be true to use a live port
+reprice_ms = 250
+entry_max_steps = 4
+exit_max_steps = 3
+chain_width = 6
