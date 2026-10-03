@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Homework Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: letter landscape; margin: 0.35in; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  :root {
+    --ink: #2f3a4a; --muted: #7a8696; --line: #d9dfe7;
+    --daily: #ff8a65;  --daily-soft: #fff1ec;
+    --weekly: #5c9ded; --weekly-soft: #edf4fe;
+    --test: #9a6cdb;   --test-soft: #f4effc;
+    --sun: #ffc93c;    --sun-soft: #fff8e1;
+    --grey-book: #9aa3ad; --red-book: #e5484d;
+  }
+  html, body { margin: 0; background: #fff; color: var(--ink); font-family: 'Nunito', 'DejaVu Sans', sans-serif; }
+  .page { width: 10.3in; height: 7.8in; margin: 0 auto; display: flex; flex-direction: column; gap: 7px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .title { display: flex; align-items: center; gap: 12px; }
+  .badge { width: 48px; height: 48px; border-radius: 15px; background: var(--sun); display: grid; place-items: center; font-size: 27px; }
+  h1 { font-family: 'Fredoka', 'DejaVu Sans', sans-serif; font-weight: 700; font-size: 30px; margin: 0; line-height: 1; }
+  h1 .a { color: var(--daily); } h1 .b { color: var(--weekly); } h1 .c { color: var(--test); }
+  .subtitle { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+  .fields { display: grid; grid-template-columns: auto 160px; gap: 5px 10px; align-items: end; font-weight: 800; font-size: 12.5px; }
+  .fields .blank { border-bottom: 2px solid var(--line); height: 18px; }
+
+  .strip { display: flex; gap: 8px; }
+  .testbar { flex: 1; white-space: nowrap; display: flex; align-items: center; gap: 12px; padding: 5px 12px; border-radius: 12px; background: var(--test-soft); border: 2px dashed var(--test); font-weight: 800; font-size: 12px; }
+  .testbar .label { color: var(--test); font-family: 'Fredoka', sans-serif; font-size: 14px; }
+  .testbar .opt { display: inline-flex; align-items: center; gap: 5px; }
+  .testbar .line { display: inline-block; border-bottom: 2px solid #cdbdec; width: 90px; height: 14px; vertical-align: bottom; }
+  .mini { width: 15px; height: 15px; border: 2.5px solid var(--test); border-radius: 5px; background: #fff; display: inline-block; }
+  .rules { white-space: nowrap; display: flex; align-items: center; gap: 10px; padding: 5px 12px; border-radius: 12px; background: var(--sun-soft); border: 2px dashed var(--sun); font-size: 11.5px; font-weight: 800; }
+  .rules .label, .testbar .label { white-space: nowrap; } .rules .label { font-family: 'Fredoka', sans-serif; font-size: 14px; color: #c48a00; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0; flex: 1; border: 2px solid var(--line); border-radius: 14px; overflow: hidden; table-layout: fixed; }
+  th, td { text-align: center; border-right: 1.5px solid var(--line); border-bottom: 1.5px solid var(--line); }
+  tr > *:last-child { border-right: none; }
+  tbody tr:last-child > * { border-bottom: none; }
+
+  thead .group th { font-family: 'Fredoka', sans-serif; font-size: 15px; font-weight: 600; color: #fff; padding: 5px 4px; }
+  thead .group .corner { background: var(--ink); }
+  thead .group .daily { background: var(--daily); }
+  thead .group .weekly { background: var(--weekly); }
+  thead .group .test { background: var(--test); }
+  thead .group .star { background: var(--sun); color: #6b4a00; }
+  thead .items th { font-size: 11.5px; font-weight: 800; padding: 5px 3px; line-height: 1.15; vertical-align: middle; }
+  thead .items .daily { background: var(--daily-soft); color: #c4552f; }
+  thead .items .weekly { background: var(--weekly-soft); color: #2f6fc0; }
+  thead .items .test { background: var(--test-soft); color: #6b3fb0; }
+  thead .items .star { background: var(--sun-soft); color: #9a6b00; }
+  thead .items .corner { background: #f3f5f8; }
+  .num { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; color: #fff; font-size: 10px; margin-right: 3px; vertical-align: 1px; }
+  .daily .num { background: var(--daily); } .weekly .num { background: var(--weekly); }
+  .goal { display: flex; align-items: center; justify-content: center; gap: 2px; margin: 3px auto 0; width: fit-content; padding: 1px 5px; border-radius: 999px; background: #fff; border: 1.5px solid #b9d3f6; font-size: 9.5px; color: #2f6fc0; white-space: nowrap; }
+  .goal .book { width: 9px; height: 12px; border-width: 2px; }
+
+  .sep-l { border-left: 3px solid var(--line); }
+
+  tbody th { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 14.5px; text-align: left; padding: 0 9px; background: #fafbfc; white-space: nowrap; }
+  tbody th .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
+  tbody tr.weekend th, tbody tr.weekend td { background: #fffaf0; }
+
+  .box { width: 26px; height: 26px; border-radius: 8px; border: 3px solid; display: inline-block; background: #fff; vertical-align: middle; }
+  td.daily .box { border-color: var(--daily); }
+  td.weekly .box { border-color: var(--weekly); }
+  td.test .box { border-color: var(--test); }
+  .mins { display: inline-flex; align-items: end; gap: 4px; color: #2f6fc0; font-size: 11px; font-weight: 800; }
+  .mins .ln { display: inline-block; width: 38px; border-bottom: 2.5px solid var(--weekly); height: 16px; }
+  .mins em { font-style: normal; }
+
+  /* Eye Level books: outline to colour in */
+  .book { display: inline-block; width: 17px; height: 23px; border: 2.5px solid; border-left-width: 5px; border-radius: 2px 5px 5px 2px; background: #fff; vertical-align: middle; }
+  .book.grey { border-color: var(--grey-book); }
+  .book.red { border-color: var(--red-book); }
+  .pick { display: inline-flex; gap: 8px; }
+  .books3 { display: inline-flex; gap: 5px; }
+  .books3 .book { width: 15px; height: 20px; }
+  .hint { font-size: 9px; font-weight: 800; color: var(--muted); margin-top: 1px; }
+
+  td.mystars { background: var(--sun-soft) !important; }
+  .star-ln { display: inline-block; width: 34px; height: 18px; border-bottom: 2.5px solid var(--sun); position: relative; }
+  .star-ln::after { content: "⭐"; position: absolute; right: -16px; bottom: -1px; font-size: 12px; }
+  .star-ln.big { width: 40px; }
+
+  tr.total th, tr.total td { background: #f3f5f8 !important; border-top: 3px solid var(--ink); padding: 4px 3px; }
+  tr.total td.mystars { background: var(--sun-soft) !important; }
+  tr.total th { font-size: 14px; }
+  .tot { font-weight: 800; font-size: 11.5px; color: var(--ink); }
+  .met { margin-top: 3px; font-size: 10.5px; font-weight: 800; color: #9a6b00; display: inline-flex; align-items: center; gap: 4px; }
+  .tiny { width: 14px; height: 14px; border: 2.5px solid; border-radius: 4px; background: #fff; display: inline-block; vertical-align: middle; }
+  .tiny.d { border-color: var(--daily); } .tiny.w { border-color: var(--weekly); } .tiny.t { border-color: var(--test); }
+
+  /* Star meter + rewards */
+  .quest { display: flex; gap: 10px; align-items: stretch; }
+  .meterbox { flex: 1; border: 2px solid var(--sun); border-radius: 12px; padding: 5px 10px 6px; background: var(--sun-soft); }
+  .meterbox .label { font-family: 'Fredoka', sans-serif; font-size: 14px; color: #9a6b00; display: flex; justify-content: space-between; }
+  .meterbox .label small { font-family: 'Nunito', sans-serif; font-size: 10.5px; font-weight: 800; color: var(--muted); }
+  .meter { display: grid; grid-template-columns: repeat(25, 1fr); gap: 3px; margin-top: 4px; }
+  .meter .cell { height: 17px; border: 2px solid #f0d58a; border-radius: 5px; background: #fff; position: relative; }
+  .meter .cell.ten { border-color: #e6b93a; }
+  .meter .cell.mark { border-color: #c48a00; border-width: 2.5px; background: #fff3c4; }
+  .meter .cell b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 9px; color: #b8913a; }
+  .rewards { display: flex; gap: 6px; }
+  .tier { width: 1.25in; border-radius: 12px; padding: 5px 8px; text-align: center; border: 2px solid; background: #fff; display: flex; flex-direction: column; justify-content: space-between; }
+  .tier .h { font-family: 'Fredoka', sans-serif; font-size: 13px; }
+  .tier .need { font-size: 10px; font-weight: 800; color: var(--muted); }
+  .tier .ln { border-bottom: 2px solid var(--line); height: 14px; margin-top: 2px; }
+  .tier.b { border-color: #d29a6a; } .tier.s { border-color: #a9b4c0; } .tier.g { border-color: #e6b93a; background: var(--sun-soft); }
+
+  footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 11.5px; font-weight: 800; color: var(--muted); }
+  footer .legend { display: flex; gap: 14px; align-items: center; }
+  footer .legend span { display: inline-flex; gap: 5px; align-items: center; }
+  footer .legend .box { width: 14px; height: 14px; border-width: 2.5px; border-radius: 4px; border-color: var(--muted); }
+  footer .legend .book { width: 11px; height: 15px; border-width: 2px; border-left-width: 4px; }
+  .sig { display: flex; align-items: end; gap: 8px; color: var(--ink); }
+  .sig .blank { border-bottom: 2px solid var(--line); width: 150px; height: 16px; }
+
+  @media screen { body { background: #eef1f5; padding: 24px 0; } .page { background: #fff; padding: 0.35in; width: 11in; height: 8.5in; box-shadow: 0 6px 24px rgba(0,0,0,.08); border-radius: 6px; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="title">
+      <div class="badge">🚀</div>
+      <div>
+        <h1><span class="a">Homework</span> <span class="b">Quest</span> <span class="c">⭐</span></h1>
+        <p class="subtitle">Tick it, color it, count your stars — then claim your reward!</p>
+      </div>
+    </div>
+    <div class="fields">
+      <span>Hero name:</span><span class="blank"></span>
+      <span>Week of:</span><span class="blank"></span>
+    </div>
+  </header>
+
+  <div class="strip">
+    <div class="rules">
+      <span class="label">⭐ Earn stars:</span>
+      <span>tick or book = 1⭐</span><span>·</span>
+      <span>10 min = 1⭐</span><span>·</span>
+      <span>goal met = +3⭐</span>
+    </div>
+    <div class="testbar">
+      <span class="label">📝 Test week?</span>
+      <span class="opt"><span class="mini"></span> Yes</span>
+      <span class="opt"><span class="mini"></span> No</span>
+      <span>Subject: <span class="line"></span></span>
+      <span>Day: <span class="line" style="width:60px"></span></span>
+    </div>
+  </div>
+
+  <table>
+    <colgroup>
+      <col style="width:11.5%">
+      <col><col>
+      <col style="width:10.5%"><col><col><col><col>
+      <col style="width:8%">
+      <col style="width:7.5%">
+    </colgroup>
+    <thead>
+      <tr class="group">
+        <th class="corner"></th>
+        <th class="daily" colspan="2">☀️ Everyday Homework</th>
+        <th class="weekly sep-l" colspan="5">📅 Weekly Homework</th>
+        <th class="test sep-l">🎯 Test</th>
+        <th class="star">⭐</th>
+      </tr>
+      <tr class="items">
+        <th class="corner">Day</th>
+        <th class="daily"><span class="num">1</span>Math Homework</th>
+        <th class="daily"><span class="num">2</span>Reading</th>
+        <th class="weekly sep-l"><span class="num">1</span>Eye Level<span class="goal">Goal: 2 <span class="book grey"></span> + 1 <span class="book red"></span></span></th><th class="weekly"><span class="num">2</span>iReady Math<span class="goal">Goal: 2 lessons</span></th><th class="weekly"><span class="num">3</span>iReady English<span class="goal">Goal: 2 lessons</span></th><th class="weekly"><span class="num">4</span>Math Fact Lab<span class="goal">Goal: 30 min</span></th><th class="weekly"><span class="num">5</span>Punjabi<span class="goal">Goal: 2 hours</span></th>
+        <th class="test sep-l">Practiced today</th>
+        <th class="star">My stars today</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><th><span class="dot" style="background:#ff8a65"></span>Monday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="pick"><span class="book grey"></span><span class="book red"></span></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="test sep-l"><span class="box"></span></td><td class="mystars"><span class="star-ln"></span></td></tr>
+      <tr><th><span class="dot" style="background:#ffc93c"></span>Tuesday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="pick"><span class="book grey"></span><span class="book red"></span></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="test sep-l"><span class="box"></span></td><td class="mystars"><span class="star-ln"></span></td></tr>
+      <tr><th><span class="dot" style="background:#6cc788"></span>Wednesday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="pick"><span class="book grey"></span><span class="book red"></span></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="test sep-l"><span class="box"></span></td><td class="mystars"><span class="star-ln"></span></td></tr>
+      <tr><th><span class="dot" style="background:#5c9ded"></span>Thursday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="pick"><span class="book grey"></span><span class="book red"></span></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="test sep-l"><span class="box"></span></td><td class="mystars"><span class="star-ln"></span></td></tr>
+      <tr><th><span class="dot" style="background:#9a6cdb"></span>Friday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="pick"><span class="book grey"></span><span class="book red"></span></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="test sep-l"><span class="box"></span></td><td class="mystars"><span class="star-ln"></span></td></tr>
+      <tr class="weekend"><th><span class="dot" style="background:#f06ba8"></span>Saturday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="pick"><span class="book grey"></span><span class="book red"></span></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="test sep-l"><span class="box"></span></td><td class="mystars"><span class="star-ln"></span></td></tr>
+      <tr class="weekend"><th><span class="dot" style="background:#4cc3c9"></span>Sunday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="pick"><span class="book grey"></span><span class="book red"></span></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="weekly"><span class="mins"><span class="ln"></span><em>min</em></span></td><td class="test sep-l"><span class="box"></span></td><td class="mystars"><span class="star-ln"></span></td></tr>
+      <tr class="total"><th>🏁 Week Total</th><td class="daily" colspan="2"><div class="tot">All 7 days?</div><div class="met">Bonus +5⭐ <span class="tiny d"></span></div></td><td class="weekly sep-l"><div class="books3"><span class="book grey"></span><span class="book grey"></span><span class="book red"></span></div><div class="hint">color when done</div><div class="met">+3⭐ <span class="tiny w"></span></div></td><td class="weekly"><div class="tot">____ / 2</div><div class="met">+3⭐ <span class="tiny w"></span></div></td><td class="weekly"><div class="tot">____ / 2</div><div class="met">+3⭐ <span class="tiny w"></span></div></td><td class="weekly"><div class="tot">____ / 30 min</div><div class="met">+3⭐ <span class="tiny w"></span></div></td><td class="weekly"><div class="tot">____ / 120 min</div><div class="met">+3⭐ <span class="tiny w"></span></div></td><td class="test sep-l"><div class="tot">Ready!</div><div class="met">+3⭐ <span class="tiny t"></span></div></td><td class="mystars total-stars"><div class="tot">Total</div><span class="star-ln big"></span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="quest">
+    <div class="meterbox">
+      <div class="label"><span>🌟 Star Meter — color one box for every star!</span><small>Dark boxes = reward unlocked! 🏆</small></div>
+      <div class="meter"><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"><b>5</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell ten"><b>10</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"><b>15</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell mark ten"><b>20</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"><b>25</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell ten"><b>30</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell mark"><b>35</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell ten"><b>40</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"><b>45</b></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell"></span><span class="cell mark ten"><b>50</b></span></div>
+    </div>
+    <div class="rewards">
+      <div class="tier b"><div class="h">🥉 Bronze</div><div class="need">20 stars</div><div class="ln"></div></div>
+      <div class="tier s"><div class="h">🥈 Silver</div><div class="need">35 stars</div><div class="ln"></div></div>
+      <div class="tier g"><div class="h">🥇 Gold</div><div class="need">50 stars</div><div class="ln"></div></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="legend">
+      <span><span class="box"></span> Tick when done</span>
+      <span><span class="book grey"></span><span class="book red"></span> Color the Eye Level book you finished</span>
+      <span class="mins"><span class="ln" style="width:22px;height:11px;border-color:var(--muted)"></span><em style="color:var(--muted)">min</em></span><span style="margin-left:-10px">Write minutes (2 hours = 120 min)</span>
+    </div>
+    <div class="sig">Parent initials: <span class="blank"></span></div>
+  </footer>
+</div>
+</body>
+</html>
