@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Weekly Homework Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  @page { size: letter landscape; margin: 0.4in; }
+  * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  :root {
+    --ink: #2f3a4a;
+    --muted: #7a8696;
+    --line: #d9dfe7;
+    --daily: #ff8a65;      --daily-soft: #fff1ec;
+    --weekly: #5c9ded;     --weekly-soft: #edf4fe;
+    --test: #9a6cdb;       --test-soft: #f4effc;
+    --sun: #ffc93c;
+  }
+  html, body { margin: 0; background: #fff; color: var(--ink); font-family: 'Nunito', 'DejaVu Sans', sans-serif; }
+  .page { width: 10.2in; height: 7.7in; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .title { display: flex; align-items: center; gap: 12px; }
+  .title .badge { width: 54px; height: 54px; border-radius: 16px; background: var(--sun); display: grid; place-items: center; font-size: 30px; }
+  h1 { font-family: 'Fredoka', 'DejaVu Sans', sans-serif; font-weight: 700; font-size: 34px; margin: 0; letter-spacing: .3px; }
+  h1 span.a { color: var(--daily); } h1 span.b { color: var(--weekly); } h1 span.c { color: var(--test); }
+  .subtitle { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .fields { display: grid; grid-template-columns: auto 170px; gap: 8px 10px; align-items: end; font-weight: 800; font-size: 13px; }
+  .fields .blank { border-bottom: 2px solid var(--line); height: 20px; }
+
+  .testbar { display: flex; align-items: center; gap: 22px; padding: 9px 16px; border-radius: 14px; background: var(--test-soft); border: 2px dashed var(--test); font-weight: 800; font-size: 13.5px; }
+  .testbar .label { color: var(--test); font-family: 'Fredoka', sans-serif; font-size: 16px; }
+  .testbar .opt { display: inline-flex; align-items: center; gap: 6px; }
+  .testbar .line { display: inline-block; border-bottom: 2px solid #cdbdec; width: 150px; height: 16px; vertical-align: bottom; }
+  .mini { width: 17px; height: 17px; border: 2.5px solid var(--test); border-radius: 5px; background: #fff; display: inline-block; }
+
+  table { width: 100%; border-collapse: separate; border-spacing: 0; flex: 1; border: 2px solid var(--line); border-radius: 16px; overflow: hidden; table-layout: fixed; }
+  th, td { text-align: center; border-right: 1.5px solid var(--line); border-bottom: 1.5px solid var(--line); }
+  tr > *:last-child { border-right: none; }
+  tbody tr:last-child > * { border-bottom: none; }
+
+  thead .group th { font-family: 'Fredoka', sans-serif; font-size: 17px; font-weight: 600; color: #fff; padding: 8px 4px; letter-spacing: .3px; }
+  thead .group .corner { background: var(--ink); }
+  thead .group .daily  { background: var(--daily); }
+  thead .group .weekly { background: var(--weekly); }
+  thead .group .test   { background: var(--test); }
+  thead .items th { font-size: 12.5px; font-weight: 800; padding: 7px 4px; line-height: 1.15; }
+  thead .items .daily  { background: var(--daily-soft);  color: #c4552f; }
+  thead .items .weekly { background: var(--weekly-soft); color: #2f6fc0; }
+  thead .items .test   { background: var(--test-soft);   color: #6b3fb0; }
+  thead .items .corner { background: #f3f5f8; }
+  thead .items .num { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; color: #fff; font-size: 10.5px; margin-right: 3px; vertical-align: 1px; }
+  .daily .num { background: var(--daily); } .weekly .num { background: var(--weekly); } .test .num { background: var(--test); }
+
+  .sep-l { border-left: 3px solid var(--line); }
+
+  tbody th { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 17px; text-align: left; padding: 0 14px; background: #fafbfc; }
+  tbody th .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; vertical-align: 1px; }
+  tbody tr.weekend th, tbody tr.weekend td { background: #fffaf0; }
+  tbody td.daily  { background: #fffdfc; }
+  tbody td.weekly { background: #fcfdff; }
+  tbody td.test   { background: #fdfcff; }
+
+  .box { width: 30px; height: 30px; border-radius: 9px; border: 3px solid; display: inline-block; background: #fff; }
+  td.daily .box  { border-color: var(--daily); }
+  td.weekly .box { border-color: var(--weekly); }
+  td.test .box   { border-color: var(--test); }
+  td.stars { font-size: 20px; color: #e8d9a6; letter-spacing: 2px; }
+
+  footer { display: flex; justify-content: space-between; align-items: center; gap: 16px; font-size: 13px; font-weight: 800; }
+  .goal { display: flex; gap: 18px; align-items: center; }
+  .goal .pill { padding: 6px 12px; border-radius: 999px; display: inline-flex; gap: 8px; align-items: center; }
+  .pill.daily  { background: var(--daily-soft); color: #c4552f; }
+  .pill.weekly { background: var(--weekly-soft); color: #2f6fc0; }
+  .pill .tiny { width: 15px; height: 15px; border: 2.5px solid currentColor; border-radius: 4px; background: #fff; display: inline-block; }
+  .sig { display: flex; align-items: end; gap: 8px; }
+  .sig .blank { border-bottom: 2px solid var(--line); width: 170px; height: 18px; }
+  .note { color: var(--muted); font-weight: 700; font-size: 11.5px; }
+
+  @media screen { body { background: #eef1f5; padding: 24px 0; } .page { background: #fff; padding: 0.4in; width: 11in; height: 8.5in; box-shadow: 0 6px 24px rgba(0,0,0,.08); border-radius: 6px; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="title">
+      <div class="badge">✏️</div>
+      <div>
+        <h1><span class="a">My</span> <span class="b">Homework</span> <span class="c">Week</span></h1>
+        <p class="subtitle">Check off each task when it's done. Small steps every day add up!</p>
+      </div>
+    </div>
+    <div class="fields">
+      <span>Name:</span><span class="blank"></span>
+      <span>Week of:</span><span class="blank"></span>
+    </div>
+  </header>
+
+  <div class="testbar">
+    <span class="label">📝 Test this week?</span>
+    <span class="opt"><span class="mini"></span> Yes</span>
+    <span class="opt"><span class="mini"></span> No</span>
+    <span>Subject: <span class="line"></span></span>
+    <span>Test day: <span class="line" style="width:120px"></span></span>
+  </div>
+
+  <table>
+    <colgroup>
+      <col style="width:15%">
+      <col><col>
+      <col><col><col>
+      <col style="width:12%">
+      <col style="width:11%">
+    </colgroup>
+    <thead>
+      <tr class="group">
+        <th class="corner" rowspan="1"></th>
+        <th class="daily" colspan="2">☀️ Everyday Homework</th>
+        <th class="weekly sep-l" colspan="3">📅 Weekly Homework</th>
+        <th class="test sep-l">🎯 Test Practice</th>
+        <th class="corner">Stars</th>
+      </tr>
+      <tr class="items">
+        <th class="corner">Day</th>
+        <th class="daily"><span class="num">1</span>Math Homework</th>
+        <th class="daily"><span class="num">2</span>Reading</th>
+        <th class="weekly sep-l"><span class="num">1</span>Eye Level</th>
+        <th class="weekly"><span class="num">2</span>iReady Math</th>
+        <th class="weekly"><span class="num">3</span>iReady English</th>
+        <th class="test sep-l">Practiced<br>today</th>
+        <th class="corner">Great job!</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- rows generated below -->
+      <tr><th><span class="dot" style="background:#ff8a65"></span>Monday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="test sep-l"><span class="box"></span></td><td class="stars">★★★</td></tr>
+      <tr><th><span class="dot" style="background:#ffc93c"></span>Tuesday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="test sep-l"><span class="box"></span></td><td class="stars">★★★</td></tr>
+      <tr><th><span class="dot" style="background:#6cc788"></span>Wednesday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="test sep-l"><span class="box"></span></td><td class="stars">★★★</td></tr>
+      <tr><th><span class="dot" style="background:#5c9ded"></span>Thursday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="test sep-l"><span class="box"></span></td><td class="stars">★★★</td></tr>
+      <tr><th><span class="dot" style="background:#9a6cdb"></span>Friday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="test sep-l"><span class="box"></span></td><td class="stars">★★★</td></tr>
+      <tr class="weekend"><th><span class="dot" style="background:#f06ba8"></span>Saturday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="test sep-l"><span class="box"></span></td><td class="stars">★★★</td></tr>
+      <tr class="weekend"><th><span class="dot" style="background:#4cc3c9"></span>Sunday</th><td class="daily"><span class="box"></span></td><td class="daily"><span class="box"></span></td><td class="weekly sep-l"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="weekly"><span class="box"></span></td><td class="test sep-l"><span class="box"></span></td><td class="stars">★★★</td></tr>
+    </tbody>
+  </table>
+
+  <footer>
+    <div class="goal">
+      <span class="pill daily"><span class="tiny"></span> Everyday homework done all week</span>
+      <span class="pill weekly"><span class="tiny"></span> All 3 weekly tasks finished</span>
+    </div>
+    <div class="sig">Parent initials: <span class="blank"></span></div>
+  </footer>
+</div>
+</body>
+</html>
